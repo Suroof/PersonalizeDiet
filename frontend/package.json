@@ -1,0 +1,29 @@
+{
+  "name": "personalize-diet-frontend",
+  "version": "1.0.0",
+  "description": "个性化食谱助手前端应用",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview",
+    "lint": "eslint . --ext .vue,.js,.jsx,.cjs,.mjs --fix --ignore-path .gitignore"
+  },
+  "dependencies": {
+    "@element-plus/icons-vue": "^2.3.1",
+    "axios": "^1.5.0",
+    "element-plus": "^2.3.9",
+    "event-source-polyfill": "^1.0.31",
+    "pinia": "^2.1.6",
+    "vue": "^3.3.4",
+    "vue-router": "^4.2.4"
+  },
+  "devDependencies": {
+    "@vitejs/plugin-vue": "^4.3.4",
+    "@vue/eslint-config-prettier": "^8.0.0",
+    "eslint": "^8.47.0",
+    "eslint-plugin-vue": "^9.17.0",
+    "prettier": "^3.0.2",
+    "vite": "^4.4.9"
+  },
+  "type": "module"
+}
