@@ -56,6 +56,7 @@
             v-for="feature in features" 
             :key="feature.title"
             class="feature-card"
+            @click="handleFeatureClick(feature)"
           >
             <div class="feature-icon">
               {{ feature.icon }}
@@ -134,9 +135,13 @@
 
 <script setup>
 import { ref, onMounted } from 'vue'
+import { useRouter } from 'vue-router'
 import RecipeCard from '../components/RecipeCard.vue'
 import { recipeApi } from '../api/chat'
 import { ElMessage } from 'element-plus'
+
+// 路由
+const router = useRouter()
 
 // 响应式数据
 const recommendedRecipes = ref([])
@@ -262,6 +267,15 @@ const loadRecommendedRecipes = async () => {
 // 加载更多菜谱
 const loadMoreRecipes = () => {
   ElMessage.info('更多菜谱功能开发中...')
+}
+
+// 处理功能卡片点击
+const handleFeatureClick = (feature) => {
+  if (feature.title === '营养分析') {
+    router.push('/nutrition')
+  } else {
+    ElMessage.info(`${feature.title}功能开发中...`)
+  }
 }
 
 // 监听表单开启事件
@@ -460,6 +474,7 @@ onMounted(() => {
   padding: 30px 20px;
   border-radius: 12px;
   transition: all 0.3s ease;
+  cursor: pointer;
 }
 
 .feature-card:hover {
