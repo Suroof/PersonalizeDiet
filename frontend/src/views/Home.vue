@@ -4,7 +4,7 @@
     <header class="page-header">
       <div class="header-content">
         <div class="logo">
-          <el-icon class="logo-icon"><Restaurant /></el-icon>
+          <span class="logo-icon">🍽️</span>
           <h1>个性化食谱助手</h1>
         </div>
         <nav class="nav-menu">
@@ -14,7 +14,7 @@
           <el-button text @click="scrollToSection('recipes')">
             推荐菜谱
           </el-button>
-          <el-button text @click="$router.push('/profile')">
+          <el-button text @click="$router.push('/settings')">
             个人设置
           </el-button>
         </nav>
@@ -29,8 +29,7 @@
           <p>基于AI技术，为您提供个性化的菜谱推荐和烹饪指导</p>
           <div class="hero-actions">
             <el-button type="primary" size="large" @click="openPreferenceForm">
-              <el-icon><ChatDotRound /></el-icon>
-              定制食谱
+              💬 定制食谱
             </el-button>
             <el-button size="large" @click="scrollToSection('features')">
               了解更多
@@ -40,7 +39,7 @@
         <div class="hero-image">
           <div class="floating-elements">
             <div class="floating-card" v-for="(item, index) in floatingItems" :key="index">
-              <el-icon>{{ item.icon }}</el-icon>
+              <span class="card-icon">{{ item.icon }}</span>
               <span>{{ item.text }}</span>
             </div>
           </div>
@@ -59,7 +58,7 @@
             class="feature-card"
           >
             <div class="feature-icon">
-              <el-icon>{{ feature.icon }}</el-icon>
+              {{ feature.icon }}
             </div>
             <h4>{{ feature.title }}</h4>
             <p>{{ feature.description }}</p>
@@ -109,9 +108,9 @@
       <div class="footer-content">
         <div class="footer-info">
           <div class="logo">
-            <el-icon class="logo-icon"><Restaurant /></el-icon>
-            <span>个性化食谱助手</span>
-          </div>
+          <span class="logo-icon">🍽️</span>
+          <h1>个性化食谱助手</h1>
+        </div>
           <p>让每一餐都充满惊喜</p>
         </div>
         <div class="footer-links">
@@ -135,16 +134,6 @@
 
 <script setup>
 import { ref, onMounted } from 'vue'
-// import { 
-//   Restaurant, 
-//   ChatDotRound, 
-//   User, 
-//   Clock, 
-//   Star,
-//   TrendCharts,
-//   Food,
-//   Guide
-// } from '@element-plus/icons-vue'
 import RecipeCard from '../components/RecipeCard.vue'
 import { recipeApi } from '../api/chat'
 import { ElMessage } from 'element-plus'
@@ -155,31 +144,31 @@ const isLoadingRecipes = ref(false)
 
 // 悬浮元素
 const floatingItems = ref([
-  { icon: Food, text: '美味菜谱' },
-  { icon: Clock, text: '快速制作' },
-  { icon: Star, text: '个性推荐' },
-  { icon: Guide, text: '详细步骤' }
+  { icon: '🍽️', text: '美味菜谱' },
+  { icon: '⏰', text: '快速制作' },
+  { icon: '⭐', text: '个性推荐' },
+  { icon: '📖', text: '详细步骤' }
 ])
 
 // 功能特性
 const features = ref([
   {
-    icon: ChatDotRound,
+    icon: '💬',
     title: '智能对话',
     description: '通过自然语言交互，轻松获取个性化菜谱推荐'
   },
   {
-    icon: Food,
+    icon: '🍽️',
     title: '丰富菜谱',
     description: '涵盖各种菜系和口味，满足不同饮食需求'
   },
   {
-    icon: User,
+    icon: '👤',
     title: '个性定制',
     description: '根据个人喜好和饮食限制，提供专属推荐'
   },
   {
-    icon: TrendCharts,
+    icon: '📊',
     title: '营养分析',
     description: '详细的营养成分分析，助您健康饮食'
   }
@@ -199,7 +188,7 @@ const mockRecipes = [
     id: 1,
     name: '宫保鸡丁',
     description: '经典川菜，麻辣鲜香，下饭神器',
-    image: '/images/gongbao-chicken.jpg',
+    image: '/assets/images/gongbao-chicken.jpg',
     difficulty: 'medium',
     cookingTime: 25,
     nutrition: {
@@ -212,7 +201,7 @@ const mockRecipes = [
     id: 2,
     name: '番茄鸡蛋面',
     description: '简单易做的家常面条，营养丰富',
-    image: '/images/tomato-egg-noodles.jpg',
+    image: '/assets/images/tomato-egg-noodles.jpg',
     difficulty: 'easy',
     cookingTime: 15,
     nutrition: {
@@ -225,7 +214,7 @@ const mockRecipes = [
     id: 3,
     name: '红烧肉',
     description: '传统名菜，肥而不腻，入口即化',
-    image: '/images/braised-pork.jpg',
+    image: '/assets/images/braised-pork.jpg',
     difficulty: 'hard',
     cookingTime: 90,
     nutrition: {
@@ -320,7 +309,6 @@ onMounted(() => {
 
 .logo-icon {
   font-size: 28px;
-  color: var(--primary-color);
 }
 
 .logo h1 {
@@ -394,6 +382,10 @@ onMounted(() => {
   gap: 8px;
   font-size: 14px;
   animation: float 6s ease-in-out infinite;
+}
+
+.card-icon {
+  font-size: 1.2rem;
 }
 
 .floating-card:nth-child(1) {
@@ -484,8 +476,7 @@ onMounted(() => {
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 24px;
-  color: white;
+  font-size: 28px;
 }
 
 .feature-card h4 {
@@ -504,13 +495,81 @@ onMounted(() => {
 /* 推荐菜谱 */
 .recipes-section {
   padding: 80px 20px;
-  background: var(--background-color);
+  background: #f8fafc;
 }
 
 .recipes-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-  gap: 24px;
+  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+  gap: 30px;
+  margin-top: 60px;
+}
+
+.recipe-card {
+  background: white;
+  border-radius: 16px;
+  overflow: hidden;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+  transition: all 0.3s ease;
+  border: 1px solid #f0f0f0;
+}
+
+.recipe-card:hover {
+  transform: translateY(-8px);
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.15);
+}
+
+.recipe-image {
+  width: 100%;
+  height: 220px;
+  object-fit: cover;
+  transition: transform 0.3s ease;
+}
+
+.recipe-card:hover .recipe-image {
+  transform: scale(1.05);
+}
+
+.recipe-content {
+  padding: 24px;
+}
+
+.recipe-content h4 {
+  margin: 0 0 12px 0;
+  font-size: 20px;
+  font-weight: 600;
+  color: var(--text-primary);
+  line-height: 1.3;
+}
+
+.recipe-meta {
+  display: flex;
+  gap: 20px;
+  margin: 16px 0;
+  font-size: 14px;
+  color: var(--text-regular);
+}
+
+.recipe-meta span {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.recipe-description {
+  margin: 0;
+  color: var(--text-regular);
+  line-height: 1.6;
+  font-size: 14px;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.load-more {
+  text-align: center;
+  margin-top: 50px;
 }
 
 .loading-container {
@@ -519,34 +578,58 @@ onMounted(() => {
 
 /* 统计数据 */
 .stats-section {
-  padding: 60px 20px;
+  padding: 80px 20px;
   background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
   color: white;
+  position: relative;
+  overflow: hidden;
+}
+
+.stats-section::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><circle cx="50" cy="50" r="2" fill="white" opacity="0.1"/></svg>') repeat;
+  background-size: 50px 50px;
 }
 
 .stats-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-  gap: 40px;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 50px;
   text-align: center;
+  position: relative;
+  z-index: 1;
+}
+
+.stat-item {
+  padding: 20px;
 }
 
 .stat-number {
   font-size: 48px;
   font-weight: 700;
-  margin-bottom: 8px;
+  margin-bottom: 12px;
+  background: linear-gradient(45deg, #fff, #e0f2fe);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
 }
 
 .stat-label {
-  font-size: 16px;
+  font-size: 18px;
   opacity: 0.9;
+  font-weight: 500;
 }
 
 /* 页脚 */
 .page-footer {
-  background: #2c3e50;
+  background: #1a202c;
   color: white;
-  padding: 40px 20px 20px;
+  padding: 60px 20px 30px;
 }
 
 .footer-content {
@@ -558,23 +641,27 @@ onMounted(() => {
 }
 
 .footer-info .logo {
-  margin-bottom: 16px;
+  margin-bottom: 24px;
 }
 
 .footer-info .logo span {
-  font-size: 18px;
-  font-weight: 600;
+  font-size: 28px;
+  font-weight: 700;
+  background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
 }
 
 .footer-info p {
   margin: 0;
-  opacity: 0.8;
+  color: #cbd5e0;
 }
 
 .footer-links {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-  gap: 30px;
+  gap: 40px;
 }
 
 .link-group h5 {
@@ -585,52 +672,137 @@ onMounted(() => {
 
 .link-group a {
   display: block;
-  color: rgba(255, 255, 255, 0.8);
+  color: #cbd5e0;
   text-decoration: none;
   margin-bottom: 8px;
-  transition: color 0.2s;
+  transition: all 0.3s ease;
+  font-weight: 500;
 }
 
 .link-group a:hover {
-  color: white;
+  color: var(--primary-color);
+  transform: translateY(-2px);
 }
 
 /* 响应式设计 */
+@media (max-width: 1024px) {
+  .steps-container {
+    grid-template-columns: 1fr;
+    gap: 50px;
+  }
+  
+  .step-connector {
+    display: none;
+  }
+  
+  .features-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  
+  .testimonials-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
 @media (max-width: 768px) {
-  .header-content {
-    flex-direction: column;
-    height: auto;
-    padding: 16px 20px;
-    gap: 16px;
+  .hero-section {
+    padding: 60px 20px;
   }
   
   .hero-content {
+    text-align: center;
     grid-template-columns: 1fr;
     gap: 40px;
-    text-align: center;
   }
   
-  .hero-text h2 {
-    font-size: 32px;
+  .hero-title {
+    font-size: 36px;
+    line-height: 1.2;
+  }
+  
+  .hero-description {
+    font-size: 16px;
+  }
+  
+  .hero-features {
+    grid-template-columns: 1fr;
   }
   
   .hero-actions {
-    justify-content: center;
+    flex-direction: column;
+    gap: 16px;
+  }
+  
+  .hero-visual {
+    order: -1;
+  }
+  
+  .main-dish {
+    width: 280px;
+    height: 280px;
+  }
+  
+  .floating-card {
+    display: none;
   }
   
   .section-title {
     font-size: 28px;
   }
   
-  .section-header {
-    flex-direction: column;
-    gap: 20px;
-    text-align: center;
+  .features-grid {
+    grid-template-columns: 1fr;
   }
   
-  .footer-content {
+  .recipes-grid {
     grid-template-columns: 1fr;
+  }
+  
+  .stats-grid {
+    grid-template-columns: repeat(2, 1fr);
     gap: 30px;
+  }
+  
+  .stat-item h3 {
+    font-size: 36px;
+  }
+  
+  .footer-links {
+    flex-direction: column;
+    gap: 20px;
+  }
+  
+  .how-it-works-section,
+  .features-section,
+  .recipes-section,
+  .testimonials-section,
+  .stats-section {
+    padding: 60px 20px;
+  }
+}
+
+@media (max-width: 480px) {
+  .hero-title {
+    font-size: 28px;
+  }
+  
+  .section-title {
+    font-size: 24px;
+  }
+  
+  .stats-grid {
+    grid-template-columns: 1fr;
+  }
+  
+  .feature-card,
+  .recipe-card,
+  .testimonial-card {
+    margin: 0 10px;
+  }
+  
+  .main-dish {
+    width: 240px;
+    height: 240px;
   }
 }
 </style>

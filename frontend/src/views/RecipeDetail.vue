@@ -238,7 +238,7 @@ const mockRecipe = {
   id: 1,
   name: '宫保鸡丁',
   description: '经典川菜，麻辣鲜香，口感丰富。选用优质鸡胸肉，搭配花生米和干辣椒，调味独特，是下饭的绝佳选择。',
-  image: '/images/gongbao-chicken.jpg',
+  image: '/assets/images/gongbao-chicken.jpg',
   difficulty: 'medium',
   cookingTime: 25,
   rating: 4.6,

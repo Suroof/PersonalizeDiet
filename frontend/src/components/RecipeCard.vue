@@ -91,7 +91,7 @@ const router = useRouter()
 const recipeStore = useRecipeStore()
 
 // 默认图片
-const defaultImage = '/images/default-recipe.jpg'
+const defaultImage = '/assets/images/default-recipe.jpg'
 
 // 计算属性
 const isFavorite = computed(() => {
