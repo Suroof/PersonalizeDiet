@@ -2,7 +2,6 @@ import { createRouter, createWebHistory } from 'vue-router'
 import Home from '../views/Home.vue'
 import RecipeDetail from '../views/RecipeDetail.vue'
 import UserSettings from '../views/UserSettings.vue'
-import NutritionAnalysis from '../views/NutritionAnalysis.vue'
 
 const routes = [
   {
@@ -27,14 +26,6 @@ const routes = [
     component: UserSettings,
     meta: {
       title: '用户设置'
-    }
-  },
-  {
-    path: '/nutrition',
-    name: 'NutritionAnalysis',
-    component: NutritionAnalysis,
-    meta: {
-      title: '营养分析'
     }
   },
   {

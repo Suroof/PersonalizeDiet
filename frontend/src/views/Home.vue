@@ -56,6 +56,7 @@
             v-for="feature in features" 
             :key="feature.title"
             class="feature-card"
+            :class="{ 'clickable': feature.title === '营养分析' }"
             @click="handleFeatureClick(feature)"
           >
             <div class="feature-icon">
@@ -63,6 +64,9 @@
             </div>
             <h4>{{ feature.title }}</h4>
             <p>{{ feature.description }}</p>
+            <div v-if="feature.title === '营养分析'" class="feature-action">
+              <span class="action-text">点击体验 →</span>
+            </div>
           </div>
         </div>
       </div>
@@ -130,22 +134,33 @@
         </div>
       </div>
     </footer>
+    
+    <!-- 营养分析对话框 -->
+    <el-dialog
+      v-model="showNutritionAnalysis"
+      title="🔬 营养分析"
+      width="90%"
+      :max-width="900"
+      :before-close="closeNutritionAnalysis"
+      class="nutrition-dialog"
+    >
+      <NutritionAnalysis />
+    </el-dialog>
   </div>
 </template>
 
 <script setup>
 import { ref, onMounted } from 'vue'
-import { useRouter } from 'vue-router'
-import RecipeCard from '../components/RecipeCard.vue'
-import { recipeApi } from '../api/chat'
-import { ElMessage } from 'element-plus'
-
-// 路由
-const router = useRouter()
+import RecipeCard from '@/components/RecipeCard.vue'
+import NutritionAnalysis from '@/components/NutritionAnalysis.vue'
+import { recipeApi } from '@/api/chat'
+import { ElMessage, ElDialog } from 'element-plus'
 
 // 响应式数据
 const recommendedRecipes = ref([])
 const isLoadingRecipes = ref(false)
+const showPreferenceForm = ref(false)
+const showNutritionAnalysis = ref(false)
 
 // 悬浮元素
 const floatingItems = ref([
@@ -236,6 +251,18 @@ const openPreferenceForm = () => {
   window.dispatchEvent(new CustomEvent('open-preference-form'))
 }
 
+// 处理功能卡片点击
+const handleFeatureClick = (feature) => {
+  if (feature.title === '营养分析') {
+    showNutritionAnalysis.value = true
+  }
+}
+
+// 关闭营养分析对话框
+const closeNutritionAnalysis = () => {
+  showNutritionAnalysis.value = false
+}
+
 // 滚动到指定区域
 const scrollToSection = (sectionId) => {
   const element = document.getElementById(sectionId)
@@ -267,15 +294,6 @@ const loadRecommendedRecipes = async () => {
 // 加载更多菜谱
 const loadMoreRecipes = () => {
   ElMessage.info('更多菜谱功能开发中...')
-}
-
-// 处理功能卡片点击
-const handleFeatureClick = (feature) => {
-  if (feature.title === '营养分析') {
-    router.push('/nutrition')
-  } else {
-    ElMessage.info(`${feature.title}功能开发中...`)
-  }
 }
 
 // 监听表单开启事件
@@ -470,16 +488,40 @@ onMounted(() => {
 }
 
 .feature-card {
-  text-align: center;
+  background: white;
   padding: 30px 20px;
   border-radius: 12px;
-  transition: all 0.3s ease;
-  cursor: pointer;
+  text-align: center;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+  position: relative;
 }
 
 .feature-card:hover {
   transform: translateY(-5px);
-  box-shadow: var(--shadow-base);
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+}
+
+.feature-card.clickable {
+  cursor: pointer;
+}
+
+.feature-card.clickable:hover {
+  transform: translateY(-8px);
+  box-shadow: 0 12px 30px rgba(64, 158, 255, 0.2);
+  border: 2px solid #409eff;
+}
+
+.feature-action {
+  margin-top: 1rem;
+  padding-top: 1rem;
+  border-top: 1px solid #f0f0f0;
+}
+
+.action-text {
+  color: #409eff;
+  font-weight: 500;
+  font-size: 0.9rem;
 }
 
 .feature-icon {
@@ -719,6 +761,33 @@ onMounted(() => {
   }
 }
 
+/* 营养分析对话框样式 */
+.nutrition-dialog {
+  --el-dialog-border-radius: 12px;
+}
+
+.nutrition-dialog .el-dialog__header {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  border-radius: 12px 12px 0 0;
+  padding: 20px 24px;
+}
+
+.nutrition-dialog .el-dialog__title {
+  color: white;
+  font-weight: 600;
+  font-size: 18px;
+}
+
+.nutrition-dialog .el-dialog__headerbtn .el-dialog__close {
+  color: white;
+  font-size: 20px;
+}
+
+.nutrition-dialog .el-dialog__body {
+  padding: 0;
+}
+
 @media (max-width: 768px) {
   .hero-section {
     padding: 60px 20px;
@@ -793,6 +862,11 @@ onMounted(() => {
   .testimonials-section,
   .stats-section {
     padding: 60px 20px;
+  }
+  
+  .nutrition-dialog {
+    width: 95% !important;
+    margin: 5vh auto;
   }
 }
 
