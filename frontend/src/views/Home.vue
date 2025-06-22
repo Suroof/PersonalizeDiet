@@ -113,7 +113,7 @@
       <div class="footer-content">
         <div class="footer-info">
           <div class="logo">
-          <span class="logo-icon">🍽️</span>
+          <div class="logo-icon">🍽️</div>
           <h1>个性化食谱助手</h1>
         </div>
           <p>让每一餐都充满惊喜</p>
@@ -347,7 +347,7 @@ onMounted(() => {
   margin: 0;
   font-size: 20px;
   font-weight: 600;
-  color: var(--text-primary);
+  color: rgb(149, 149, 149)  
 }
 
 .nav-menu {

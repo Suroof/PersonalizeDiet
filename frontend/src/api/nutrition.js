@@ -67,14 +67,14 @@ export const nutritionApi = {
         
         // 发送营养分析请求
         const analysisResponse = await axios.post(`${NUTRITION_DIFY_API_URL}/chat-messages`, {
-          inputs: {},
+          inputs: {
+            "imgURL": {
+              type: 'image', 
+              transfer_method: 'local_file', 
+              upload_file_id: fileId 
+            }
+          },
           query: query,
-          files: [{
-            type: 'image',
-            transfer_method: 'remote_url',
-            url: uploadResponse.data.url || '',
-            upload_file_id: fileId
-          }],
           response_mode: 'blocking',
           conversation_id: '',
           user: 'user-' + Date.now()
