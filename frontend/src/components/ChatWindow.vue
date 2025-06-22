@@ -5,7 +5,9 @@
       <div class="chat-header">
         <div class="header-info">
           <div class="avatar">
-            <el-icon><User /></el-icon>
+            <el-icon>
+              <User />
+            </el-icon>
           </div>
           <div class="title-info">
             <h3>食谱助手</h3>
@@ -13,18 +15,8 @@
           </div>
         </div>
         <div class="header-actions">
-          <el-button 
-            type="text" 
-            @click="clearChat"
-            :icon="Delete"
-            title="清空聊天"
-          />
-          <el-button 
-            type="text" 
-            @click="$emit('close-chat')"
-            :icon="Close"
-            title="关闭"
-          />
+          <el-button type="text" @click="clearChat" :icon="Delete" title="清空聊天" />
+          <el-button type="text" @click="$emit('close-chat')" :icon="Close" title="关闭" />
         </div>
       </div>
 
@@ -32,7 +24,9 @@
       <div class="chat-messages" ref="messagesContainer">
         <div v-if="!hasMessages" class="welcome-message">
           <div class="welcome-content">
-            <el-icon class="welcome-icon"><ChatDotRound /></el-icon>
+            <el-icon class="welcome-icon">
+              <ChatDotRound />
+            </el-icon>
             <h4>欢迎使用个性化食谱助手！</h4>
             <p>我可以帮您：</p>
             <ul>
@@ -46,12 +40,7 @@
         </div>
 
         <!-- 消息列表 -->
-        <div 
-          v-for="message in messages" 
-          :key="message.id"
-          class="message-item"
-          :class="`message-${message.sender}`"
-        >
+        <div v-for="message in messages" :key="message.id" class="message-item" :class="`message-${message.sender}`">
           <div class="message-avatar">
             <el-icon v-if="message.sender === 'user'">
               <User />
@@ -60,7 +49,7 @@
               <ChatDotRound />
             </el-icon>
           </div>
-          
+
           <div class="message-content">
             <div class="message-bubble">
               <div v-if="message.type === 'recipe'" class="recipe-message">
@@ -85,36 +74,17 @@
       <!-- 输入区域 -->
       <div class="chat-input">
         <div class="input-container">
-          <el-input
-            v-model="inputMessage"
-            type="textarea"
-            :rows="1"
-            :autosize="{ minRows: 1, maxRows: 4 }"
-            placeholder="输入您的问题..."
-            @keydown.enter="handleEnter"
-            :disabled="isLoading"
-            class="message-input"
-          />
-          <el-button
-            type="primary"
-            :icon="isLoading ? Loading : Promotion"
-            :loading="isLoading"
-            @click="sendMessage"
-            :disabled="!inputMessage.trim()"
-            class="send-button"
-          >
+          <el-input v-model="inputMessage" type="textarea" :rows="1" :autosize="{ minRows: 1, maxRows: 4 }"
+            placeholder="输入您的问题..." @keydown.enter="handleEnter" :disabled="isLoading" class="message-input" />
+          <el-button type="primary" :icon="isLoading ? Loading : Promotion" :loading="isLoading" @click="sendMessage"
+            :disabled="!inputMessage.trim()" class="send-button">
             发送
           </el-button>
         </div>
-        
+
         <!-- 快捷回复 -->
         <div v-if="!hasMessages" class="quick-replies">
-          <el-tag 
-            v-for="reply in quickReplies"
-            :key="reply"
-            @click="selectQuickReply(reply)"
-            class="quick-reply-tag"
-          >
+          <el-tag v-for="reply in quickReplies" :key="reply" @click="selectQuickReply(reply)" class="quick-reply-tag">
             {{ reply }}
           </el-tag>
         </div>
@@ -125,13 +95,13 @@
 
 <script setup>
 import { ref, computed, nextTick, onMounted, watch } from 'vue'
-import { 
-  User, 
-  ChatDotRound, 
-  Close, 
-  Delete, 
-  Promotion, 
-  Loading 
+import {
+  User,
+  ChatDotRound,
+  Close,
+  Delete,
+  Promotion,
+  Loading
 } from '@element-plus/icons-vue'
 import { useChatStore } from '../store'
 import { ElMessage } from 'element-plus'
@@ -213,12 +183,60 @@ const scrollToBottom = () => {
 // 格式化消息内容
 const formatMessage = (content) => {
   if (!content) return ''
+
+  let formatted = content
+
+  // 处理表格
+  formatted = formatted.replace(/\|(.+?)\|/g, (match, content) => {
+    const cells = content.split('|').map(cell => cell.trim())
+    return `<tr>${cells.map(cell => `<td>${cell}</td>`).join('')}</tr>`
+  })
+
+  // 包装表格
+  formatted = formatted.replace(/(<tr>.*?<\/tr>)/gs, '<table class="message-table">$1</table>')
+
+  // 处理食材链接格式：食材名: [食材名](URL) -> 食材名: 食材名（可点击）
+  formatted = formatted.replace(/(\w+?):\s*\[([^\]]+)\]\(([^)]+?)\)(?![）])/g, '$1: <a href="$3" target="_blank" class="message-link">$2</a>');
   
-  // 简单的markdown格式化
-  return content
-    .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
-    .replace(/\*(.*?)\*/g, '<em>$1</em>')
-    .replace(/\n/g, '<br>')
+  // 处理直接URL格式：食材名: URL -> 食材名: 食材名（可点击）
+  formatted = formatted.replace(/(\w+?):\s*(https?:\/\/[^\s]+?)(?=\s|）|$)/g, '$1: <a href="$2" target="_blank" class="message-link">$1</a>');
+  
+  // 处理其他独立的URL（保持原样显示）
+  formatted = formatted.replace(/(?<!href=")(https?:\/\/[^\s<>"]+)(?!")/g, '<a href="$1" target="_blank" class="message-link">$1</a>');
+
+  // 处理标题
+  formatted = formatted.replace(/^### (.+)$/gm, '<h3 class="message-h3">$1</h3>')
+  formatted = formatted.replace(/^## (.+)$/gm, '<h2 class="message-h2">$1</h2>')
+  formatted = formatted.replace(/^# (.+)$/gm, '<h1 class="message-h1">$1</h1>')
+
+  // 处理列表
+  formatted = formatted.replace(/^- (.+)$/gm, '<li class="message-li">$1</li>')
+  formatted = formatted.replace(/(<li class="message-li">.*?<\/li>)/gs, '<ul class="message-ul">$1</ul>')
+
+  // 处理有序列表
+  formatted = formatted.replace(/^\d+\. (.+)$/gm, '<li class="message-oli">$1</li>')
+  formatted = formatted.replace(/(<li class="message-oli">.*?<\/li>)/gs, '<ol class="message-ol">$1</ol>')
+
+  // 处理分隔线
+  formatted = formatted.replace(/^---$/gm, '<hr class="message-hr">')
+
+  // 处理粗体和斜体
+  formatted = formatted.replace(/\*\*(.*?)\*\*/g, '<strong class="message-bold">$1</strong>')
+  formatted = formatted.replace(/\*(.*?)\*/g, '<em class="message-italic">$1</em>')
+
+  // 处理代码块
+  formatted = formatted.replace(/`([^`]+)`/g, '<code class="message-code">$1</code>')
+
+  // 处理emoji和特殊符号
+  formatted = formatted.replace(/✅/g, '<span class="message-emoji success">✅</span>')
+  formatted = formatted.replace(/🌟/g, '<span class="message-emoji star">🌟</span>')
+  formatted = formatted.replace(/💪/g, '<span class="message-emoji strong">💪</span>')
+  formatted = formatted.replace(/🍽️/g, '<span class="message-emoji food">🍽️</span>')
+
+  // 最后处理换行
+  formatted = formatted.replace(/\n/g, '<br>')
+
+  return formatted
 }
 
 // 格式化时间
@@ -269,7 +287,7 @@ onMounted(() => {
 
 .chat-window {
   width: 100%;
-  max-width: 500px;
+  max-width: 800px;
   height: 600px;
   background: white;
   border-radius: 16px;
@@ -430,6 +448,7 @@ onMounted(() => {
   color: var(--text-primary);
   border: 1px solid var(--border-color);
   border-bottom-left-radius: 4px;
+  padding-left: 32px;
 }
 
 .message-time {
@@ -463,9 +482,13 @@ onMounted(() => {
 }
 
 @keyframes typing {
-  0%, 60%, 100% {
+
+  0%,
+  60%,
+  100% {
     opacity: 0.4;
   }
+
   30% {
     opacity: 1;
   }
@@ -508,25 +531,163 @@ onMounted(() => {
   color: white;
 }
 
+/* 消息格式化样式 */
+.message-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 8px 0;
+  font-size: 14px;
+}
+
+.message-table td {
+  padding: 8px 12px;
+  border: 1px solid var(--border-color);
+  background: rgba(0, 0, 0, 0.02);
+}
+
+.message-table tr:first-child td {
+  background: var(--primary-color);
+  color: white;
+  font-weight: 600;
+}
+
+.message-link {
+  color: var(--primary-color);
+  text-decoration: none;
+  border-bottom: 1px solid var(--primary-color);
+  transition: all 0.2s;
+}
+
+.message-link:hover {
+  background: var(--primary-color);
+  color: white;
+  padding: 2px 4px;
+  border-radius: 4px;
+  border-bottom: none;
+}
+
+.message-h1,
+.message-h2,
+.message-h3 {
+  margin: 16px 0 8px 0;
+  color: var(--text-primary);
+  font-weight: 600;
+}
+
+.message-h1 {
+  font-size: 20px;
+  border-bottom: 2px solid var(--primary-color);
+  padding-bottom: 4px;
+}
+
+.message-h2 {
+  font-size: 18px;
+  color: var(--primary-color);
+}
+
+.message-h3 {
+  font-size: 16px;
+  color: var(--secondary-color);
+}
+
+.message-ul,
+.message-ol {
+  margin: 4px 0 4px 8px;
+  padding-left: 20px;
+}
+
+.message-li,
+.message-oli {
+  margin: 2px 0 2px 8px;
+  line-height: 1.5;
+}
+
+.message-hr {
+  border: none;
+  height: 1px;
+  background: linear-gradient(to right, transparent, var(--border-color), transparent);
+  margin: 16px 0;
+}
+
+.message-bold {
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.message-italic {
+  font-style: italic;
+  color: var(--text-regular);
+}
+
+.message-code {
+  background: rgba(0, 0, 0, 0.05);
+  padding: 2px 6px;
+  border-radius: 4px;
+  font-family: 'Courier New', monospace;
+  font-size: 13px;
+  color: var(--primary-color);
+}
+
+.message-emoji {
+  font-size: 16px;
+  margin: 0 2px;
+}
+
+.message-emoji.success {
+  color: #67C23A;
+}
+
+.message-emoji.star {
+  color: #E6A23C;
+}
+
+.message-emoji.strong {
+  color: #F56C6C;
+}
+
+.message-emoji.food {
+  color: #909399;
+}
+
 /* 移动端适配 */
 @media (max-width: 768px) {
   .chat-window-overlay {
     padding: 0;
   }
-  
+
   .chat-window {
     width: 100%;
     height: 100%;
     border-radius: 0;
     max-width: none;
   }
-  
+
   .message-content {
     max-width: 85%;
   }
-  
+
   .quick-replies {
     flex-direction: column;
+  }
+
+  .message-table {
+    font-size: 12px;
+  }
+
+  .message-table td {
+    padding: 6px 8px;
+  }
+
+  .message-h1 {
+    font-size: 18px;
+  }
+
+  .message-h2 {
+    font-size: 16px;
+  }
+
+  .message-h3 {
+    font-size: 14px;
   }
 }
 </style>
