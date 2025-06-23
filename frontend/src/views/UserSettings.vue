@@ -10,6 +10,124 @@
       <!-- 设置内容 -->
       <div class="settings-content">
         <el-tabs v-model="activeTab" class="settings-tabs">
+          <!-- 登录注册 -->
+          <el-tab-pane label="登录注册" name="auth">
+            <div class="settings-section">
+              <div class="section-header">
+                <h3>账户管理</h3>
+                <p>登录或注册您的账户</p>
+              </div>
+              
+              <div class="auth-container">
+                <el-card class="auth-card">
+                  <template #header>
+                    <div class="auth-header">
+                      <el-segmented v-model="authMode" :options="authOptions" size="large" />
+                    </div>
+                  </template>
+                  
+                  <!-- 登录表单 -->
+                  <div v-if="authMode === 'login'" class="auth-form">
+                    <el-form
+                      ref="loginFormRef"
+                      :model="loginForm"
+                      :rules="loginRules"
+                      label-width="0"
+                      size="large"
+                    >
+                      <el-form-item prop="username">
+                        <el-input
+                          v-model="loginForm.username"
+                          placeholder="请输入用户名或邮箱"
+                          prefix-icon="User"
+                        />
+                      </el-form-item>
+                      
+                      <el-form-item prop="password">
+                        <el-input
+                          v-model="loginForm.password"
+                          type="password"
+                          placeholder="请输入密码"
+                          prefix-icon="Lock"
+                          show-password
+                        />
+                      </el-form-item>
+                      
+                      <el-form-item>
+                        <el-button
+                          type="primary"
+                          @click="handleLogin"
+                          :loading="loginLoading"
+                          style="width: 100%"
+                        >
+                          {{ loginLoading ? '登录中...' : '登录' }}
+                        </el-button>
+                      </el-form-item>
+                    </el-form>
+                  </div>
+                  
+                  <!-- 注册表单 -->
+                  <div v-else class="auth-form">
+                    <el-form
+                      ref="registerFormRef"
+                      :model="registerForm"
+                      :rules="registerRules"
+                      label-width="0"
+                      size="large"
+                    >
+                      <el-form-item prop="username">
+                        <el-input
+                          v-model="registerForm.username"
+                          placeholder="请输入用户名"
+                          prefix-icon="User"
+                        />
+                      </el-form-item>
+                      
+                      <el-form-item prop="email">
+                        <el-input
+                          v-model="registerForm.email"
+                          placeholder="请输入邮箱"
+                          prefix-icon="Message"
+                        />
+                      </el-form-item>
+                      
+                      <el-form-item prop="password">
+                        <el-input
+                          v-model="registerForm.password"
+                          type="password"
+                          placeholder="请输入密码"
+                          prefix-icon="Lock"
+                          show-password
+                        />
+                      </el-form-item>
+                      
+                      <el-form-item prop="confirmPassword">
+                        <el-input
+                          v-model="registerForm.confirmPassword"
+                          type="password"
+                          placeholder="请确认密码"
+                          prefix-icon="Lock"
+                          show-password
+                        />
+                      </el-form-item>
+                      
+                      <el-form-item>
+                        <el-button
+                          type="primary"
+                          @click="handleRegister"
+                          :loading="registerLoading"
+                          style="width: 100%"
+                        >
+                          {{ registerLoading ? '注册中...' : '注册' }}
+                        </el-button>
+                      </el-form-item>
+                    </el-form>
+                  </div>
+                </el-card>
+              </div>
+            </div>
+          </el-tab-pane>
+          
           <!-- 基本信息 -->
           <el-tab-pane label="基本信息" name="profile">
             <div class="settings-section">
@@ -315,11 +433,79 @@ import { ElMessage, ElMessageBox } from 'element-plus'
 const userStore = useUserStore()
 
 // 响应式数据
-const activeTab = ref('profile')
+const activeTab = ref('auth')
 const profileFormRef = ref()
 const ingredientInputRef = ref()
 const showIngredientInput = ref(false)
 const newIngredient = ref('')
+
+// 登录注册相关
+const authMode = ref('login')
+const loginFormRef = ref()
+const registerFormRef = ref()
+const loginLoading = ref(false)
+const registerLoading = ref(false)
+
+// 认证选项
+const authOptions = [
+  { label: '登录', value: 'login' },
+  { label: '注册', value: 'register' }
+]
+
+// 登录表单
+const loginForm = reactive({
+  username: '',
+  password: ''
+})
+
+// 注册表单
+const registerForm = reactive({
+  username: '',
+  email: '',
+  password: '',
+  confirmPassword: ''
+})
+
+// 登录验证规则
+const loginRules = {
+  username: [
+    { required: true, message: '请输入用户名或邮箱', trigger: 'blur' }
+  ],
+  password: [
+    { required: true, message: '请输入密码', trigger: 'blur' },
+    { min: 6, message: '密码长度不能少于6位', trigger: 'blur' }
+  ]
+}
+
+// 注册验证规则
+const registerRules = {
+  username: [
+    { required: true, message: '请输入用户名', trigger: 'blur' },
+    { min: 3, max: 20, message: '用户名长度在 3 到 20 个字符', trigger: 'blur' },
+    { pattern: /^[a-zA-Z0-9_]+$/, message: '用户名只能包含字母、数字和下划线', trigger: 'blur' }
+  ],
+  email: [
+    { required: true, message: '请输入邮箱地址', trigger: 'blur' },
+    { type: 'email', message: '请输入正确的邮箱地址', trigger: 'blur' }
+  ],
+  password: [
+    { required: true, message: '请输入密码', trigger: 'blur' },
+    { min: 6, message: '密码长度不能少于6位', trigger: 'blur' }
+  ],
+  confirmPassword: [
+    { required: true, message: '请确认密码', trigger: 'blur' },
+    {
+      validator: (rule, value, callback) => {
+        if (value !== registerForm.password) {
+          callback(new Error('两次输入的密码不一致'))
+        } else {
+          callback()
+        }
+      },
+      trigger: 'blur'
+    }
+  ]
+}
 
 // 个人资料表单
 const profileForm = reactive({
@@ -389,6 +575,110 @@ const getSweetnessLabel = (value) => {
 const getSaltinessLabel = (value) => {
   const labels = ['清淡', '微咸', '适中', '偏咸', '重咸', '超咸']
   return labels[value] || '适中'
+}
+
+// 登录处理
+const handleLogin = async () => {
+  try {
+    await loginFormRef.value.validate()
+    loginLoading.value = true
+    
+    const response = await fetch('http://localhost:8080/api/auth/login', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        username: loginForm.username,
+        password: loginForm.password
+      })
+    })
+    
+    const data = await response.json()
+    
+    if (response.ok) {
+      // 登录成功
+      ElMessage.success('登录成功！')
+      // 处理用户信息
+      if (data.user || data.data) {
+        userStore.updateUserInfo(data.user || data.data)
+      }
+      if (data.token) {
+        localStorage.setItem('token', data.token)
+      }
+      // 切换到基本信息页面
+      activeTab.value = 'profile'
+    } else {
+      ElMessage.error(data.message || '登录失败，请检查用户名和密码')
+    }
+  } catch (error) {
+    console.error('登录失败:', error)
+    ElMessage.error('登录失败，请检查网络连接')
+  } finally {
+    loginLoading.value = false
+  }
+}
+
+// 注册处理
+const handleRegister = async () => {
+  try {
+    await registerFormRef.value.validate()
+    registerLoading.value = true
+    
+    const response = await fetch('http://localhost:8080/api/users', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        username: registerForm.username,
+        email: registerForm.email,
+        password: registerForm.password
+      })
+    })
+    
+    console.log('注册响应状态:', response.status)
+    console.log('注册响应头:', response.headers)
+    
+    // 检查多种成功状态
+    if (response.ok || response.status === 200 || response.status === 201) {
+      // 注册成功
+      ElMessage.success('注册成功！请登录')
+      // 切换到登录模式
+      authMode.value = 'login'
+      // 清空注册表单
+      Object.assign(registerForm, {
+        username: '',
+        email: '',
+        password: '',
+        confirmPassword: ''
+      })
+    } else {
+      // 注册失败，尝试解析响应
+      let errorMessage = '注册失败，请重试'
+      try {
+        const data = await response.json()
+        console.log('注册响应数据:', data)
+        errorMessage = data.message || data.msg || data.error || errorMessage
+      } catch (jsonError) {
+        // 如果不是JSON格式，获取文本内容
+        try {
+          const textData = await response.text()
+          console.log('注册响应文本:', textData)
+          errorMessage = textData || errorMessage
+        } catch (textError) {
+          console.error('解析响应失败:', textError)
+        }
+      }
+      console.error('注册失败:', errorMessage)
+      ElMessage.error(errorMessage)
+    }
+  } catch (error) {
+    console.error('注册请求失败:', error)
+    ElMessage.error('注册失败，请检查网络连接')
+  } finally {
+    registerLoading.value = false
+  }
 }
 
 // 上传头像
