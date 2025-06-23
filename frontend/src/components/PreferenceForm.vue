@@ -137,7 +137,7 @@
                   <div class="preview-item">
                     <strong>饮食禁忌：</strong>
                     {{formData.restrictions.includes('none') ? '无禁忌' : formData.restrictions.filter(r => r !==
-                      'none').map(r => restrictionMap[r]).join('、') }}
+                      'none').map(r => restrictionMap[r]).join('、')}}
                   </div>
                   <div class="preview-item">
                     <strong>健身目标：</strong>
@@ -190,6 +190,7 @@ const currentStep = ref(1)
 
 // 步骤配置
 const steps = [
+  { title: '基本信息', key: 'basic' },
   { title: '口味偏好', key: 'taste' },
   { title: '烹饪要求', key: 'cooking' },
   { title: '特殊需求', key: 'special' }
