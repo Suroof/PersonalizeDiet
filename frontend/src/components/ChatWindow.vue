@@ -186,20 +186,36 @@ const formatMessage = (content) => {
 
   let formatted = content
 
-  // 处理表格
-  formatted = formatted.replace(/\|(.+?)\|/g, (match, content) => {
-    const cells = content.split('|').map(cell => cell.trim())
-    return `<tr>${cells.map(cell => `<td>${cell}</td>`).join('')}</tr>`
-  })
-
-  // 包装表格
-  formatted = formatted.replace(/(<tr>.*?<\/tr>)/gs, '<table class="message-table">$1</table>')
-
-  // 处理食材链接格式：食材名: [食材名](URL) -> 食材名: 食材名（可点击）
-  formatted = formatted.replace(/(\w+?):\s*\[([^\]]+)\]\(([^)]+?)\)(?![）])/g, '$1: <a href="$3" target="_blank" class="message-link">$2</a>');
+  // 处理表格 - 修复表格格式识别
+  const tableRows = []
+  const lines = formatted.split('\n')
+  let inTable = false
   
-  // 处理直接URL格式：食材名: URL -> 食材名: 食材名（可点击）
-  formatted = formatted.replace(/(\w+?):\s*(https?:\/\/[^\s]+?)(?=\s|）|$)/g, '$1: <a href="$2" target="_blank" class="message-link">$1</a>');
+  for (let i = 0; i < lines.length; i++) {
+    const line = lines[i].trim()
+    if (line.includes('|') && line.split('|').length >= 3) {
+      const cells = line.split('|').filter(cell => cell.trim() !== '').map(cell => cell.trim())
+      if (cells.length > 0) {
+        tableRows.push(`<tr>${cells.map(cell => `<td>${cell}</td>`).join('')}</tr>`)
+        inTable = true
+        lines[i] = ''
+      }
+    } else if (inTable && line === '') {
+      // 表格结束
+      inTable = false
+    }
+  }
+  
+  formatted = lines.join('\n')
+  if (tableRows.length > 0) {
+    formatted = formatted.replace(/\n\n+/g, '\n') + '\n<table class="message-table">' + tableRows.join('') + '</table>'
+  }
+
+  // 处理食材链接格式：食材名: [食材名](URL) -> 食材名：`URL`
+  formatted = formatted.replace(/(\w+?):\s*\[([^\]]+)\]\(([^)]+?)\)(?![）])/g, '$1：`$3`');
+  
+  // 处理直接URL格式：食材名: URL -> 食材名：`URL`
+  formatted = formatted.replace(/(\w+?):\s*(https?:\/\/[^\s]+?)(?=\s|）|$)/g, '$1：`$2`');
   
   // 处理其他独立的URL（保持原样显示）
   formatted = formatted.replace(/(?<!href=")(https?:\/\/[^\s<>"]+)(?!")/g, '<a href="$1" target="_blank" class="message-link">$1</a>');

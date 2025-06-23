@@ -5,7 +5,9 @@
       <div class="form-header">
         <div class="header-info">
           <div class="avatar">
-            <el-icon><User /></el-icon>
+            <el-icon>
+              <User />
+            </el-icon>
           </div>
           <div class="title-info">
             <h3>个性化食谱定制</h3>
@@ -13,39 +15,28 @@
           </div>
         </div>
         <div class="header-actions">
-          <el-button 
-            type="text" 
-            @click="$emit('close-form')"
-            :icon="Close"
-            title="关闭"
-          />
+          <el-button type="text" @click="$emit('close-form')" :icon="Close" title="关闭" />
         </div>
       </div>
 
       <!-- 步骤指示器 -->
       <div class="step-indicator">
         <div class="steps">
-          <div 
-            v-for="(step, index) in steps" 
-            :key="index"
-            class="step-item"
-            :class="{
-              'active': currentStep === index + 1,
-              'completed': currentStep > index + 1
-            }"
-          >
+          <div v-for="(step, index) in steps" :key="index" class="step-item" :class="{
+            'active': currentStep === index + 1,
+            'completed': currentStep > index + 1
+          }">
             <div class="step-number">
-              <el-icon v-if="currentStep > index + 1"><Check /></el-icon>
+              <el-icon v-if="currentStep > index + 1">
+                <Check />
+              </el-icon>
               <span v-else>{{ index + 1 }}</span>
             </div>
             <div class="step-title">{{ step.title }}</div>
           </div>
         </div>
         <div class="progress-bar">
-          <div 
-            class="progress-fill" 
-            :style="{ width: `${((currentStep - 1) / (steps.length - 1)) * 100}%` }"
-          ></div>
+          <div class="progress-fill" :style="{ width: `${((currentStep - 1) / (steps.length - 1)) * 100}%` }"></div>
         </div>
       </div>
 
@@ -59,20 +50,10 @@
                 <h4>基本用餐信息</h4>
                 <p>请告诉我们您的基本用餐需求</p>
               </div>
-              <el-form 
-                ref="formRef" 
-                :model="formData" 
-                :rules="currentStepRules" 
-                label-width="100px"
-                class="preference-form-inner"
-              >
+              <el-form ref="formRef" :model="formData" :rules="currentStepRules" label-width="100px"
+                class="preference-form-inner">
                 <el-form-item label="用餐时间" prop="mealTime">
-                  <el-select 
-                    v-model="formData.mealTime" 
-                    placeholder="请选择用餐时间"
-                    style="width: 100%"
-                    size="large"
-                  >
+                  <el-select v-model="formData.mealTime" placeholder="请选择用餐时间" style="width: 100%" size="large">
                     <el-option label="早餐" value="breakfast" />
                     <el-option label="午餐" value="lunch" />
                     <el-option label="晚餐" value="dinner" />
@@ -82,14 +63,8 @@
                 </el-form-item>
 
                 <el-form-item label="用餐人数" prop="servings">
-                  <el-input-number 
-                    v-model="formData.servings" 
-                    :min="1" 
-                    :max="10" 
-                    controls-position="right"
-                    style="width: 200px"
-                    size="large"
-                  />
+                  <el-input-number v-model="formData.servings" :min="1" :max="10" controls-position="right"
+                    style="width: 200px" size="large" />
                   <span style="margin-left: 10px; color: #666;">人</span>
                 </el-form-item>
 
@@ -110,24 +85,14 @@
                 <h4>口味偏好设置</h4>
                 <p>选择您喜欢的口味和饮食限制</p>
               </div>
-              <el-form 
-                ref="formRef" 
-                :model="formData" 
-                :rules="currentStepRules" 
-                label-width="100px"
-                class="preference-form-inner"
-              >
+              <el-form ref="formRef" :model="formData" :rules="currentStepRules" label-width="100px"
+                class="preference-form-inner">
                 <el-form-item label="口味偏好" prop="taste">
                   <div class="taste-options">
-                    <el-tag 
-                      v-for="taste in tasteOptions" 
-                      :key="taste.value"
+                    <el-tag v-for="taste in tasteOptions" :key="taste.value"
                       :type="formData.taste.includes(taste.value) ? 'primary' : 'info'"
                       :effect="formData.taste.includes(taste.value) ? 'dark' : 'plain'"
-                      @click="toggleTaste(taste.value)"
-                      class="taste-tag"
-                      size="large"
-                    >
+                      @click="toggleTaste(taste.value)" class="taste-tag" size="large">
                       {{ taste.icon }} {{ taste.label }}
                     </el-tag>
                   </div>
@@ -136,13 +101,10 @@
                 <el-form-item label="饮食禁忌" prop="restrictions">
                   <div class="restriction-options">
                     <el-checkbox-group v-model="formData.restrictions">
-                      <el-checkbox 
-                        v-for="restriction in restrictionOptions" 
-                        :key="restriction.value"
-                        :label="restriction.value"
-                        size="large"
-                        class="restriction-checkbox"
-                      >
+                      <el-checkbox v-for="restriction in restrictionOptions" :key="restriction.value"
+                        :label="restriction.value" size="large" class="restriction-checkbox"
+                        :disabled="restriction.value !== 'none' && formData.restrictions.includes('none')"
+                        @change="handleRestrictionChange">
                         {{ restriction.icon }} {{ restriction.label }}
                       </el-checkbox>
                     </el-checkbox-group>
@@ -157,22 +119,13 @@
                 <h4>烹饪要求</h4>
                 <p>设置您的健身目标和烹饪难度偏好</p>
               </div>
-              <el-form 
-                ref="formRef" 
-                :model="formData" 
-                :rules="currentStepRules" 
-                label-width="100px"
-                class="preference-form-inner"
-              >
+              <el-form ref="formRef" :model="formData" :rules="currentStepRules" label-width="100px"
+                class="preference-form-inner">
                 <el-form-item label="健身目标" prop="fitnessGoal">
                   <div class="goal-options">
-                    <div 
-                      v-for="goal in fitnessGoalOptions" 
-                      :key="goal.value"
-                      class="goal-card"
+                    <div v-for="goal in fitnessGoalOptions" :key="goal.value" class="goal-card"
                       :class="{ 'selected': formData.fitnessGoal === goal.value }"
-                      @click="formData.fitnessGoal = goal.value"
-                    >
+                      @click="formData.fitnessGoal = goal.value">
                       <div class="goal-icon">{{ goal.icon }}</div>
                       <div class="goal-title">{{ goal.label }}</div>
                       <div class="goal-desc">{{ goal.description }}</div>
@@ -182,11 +135,7 @@
 
                 <el-form-item label="烹饪难度" prop="difficulty">
                   <el-radio-group v-model="formData.difficulty" size="large">
-                    <el-radio-button 
-                      v-for="diff in difficultyOptions" 
-                      :key="diff.value"
-                      :label="diff.value"
-                    >
+                    <el-radio-button v-for="diff in difficultyOptions" :key="diff.value" :label="diff.value">
                       {{ diff.icon }} {{ diff.label }}
                     </el-radio-button>
                   </el-radio-group>
@@ -200,23 +149,12 @@
                 <h4>特殊需求</h4>
                 <p>添加任何其他特殊要求或偏好（可选）</p>
               </div>
-              <el-form 
-                ref="formRef" 
-                :model="formData" 
-                :rules="currentStepRules" 
-                label-width="100px"
-                class="preference-form-inner"
-              >
+              <el-form ref="formRef" :model="formData" :rules="currentStepRules" label-width="100px"
+                class="preference-form-inner">
                 <el-form-item label="特殊需求" prop="specialRequests">
-                  <el-input
-                    v-model="formData.specialRequests"
-                    type="textarea"
-                    :rows="6"
-                    placeholder="请描述其他特殊需求或偏好，例如： 不喜欢某种食材 特定的烹饪方式 营养需求 过敏信息等"
-                    maxlength="300"
-                    show-word-limit
-                    size="large"
-                  />
+                  <el-input v-model="formData.specialRequests" type="textarea" :rows="6"
+                    placeholder="请描述其他特殊需求或偏好，例如： 不喜欢某种食材 特定的烹饪方式 营养需求 过敏信息等" maxlength="300" show-word-limit
+                    size="large" />
                 </el-form-item>
 
                 <!-- 预览信息 -->
@@ -228,11 +166,12 @@
                   </div>
                   <div class="preview-item">
                     <strong>口味偏好：</strong>
-                    {{ formData.taste.length > 0 ? formData.taste.map(t => tasteMap[t]).join('、') : '无特殊要求' }}
+                    {{formData.taste.length > 0 ? formData.taste.map(t => tasteMap[t]).join('、') : '无特殊要求'}}
                   </div>
                   <div class="preview-item">
                     <strong>饮食禁忌：</strong>
-                    {{ formData.restrictions.includes('none') ? '无禁忌' : formData.restrictions.filter(r => r !== 'none').map(r => restrictionMap[r]).join('、') }}
+                    {{formData.restrictions.includes('none') ? '无禁忌' : formData.restrictions.filter(r => r !==
+                      'none').map(r => restrictionMap[r]).join('、') }}
                   </div>
                   <div class="preview-item">
                     <strong>健身目标：</strong>
@@ -252,34 +191,16 @@
       <!-- 表单底部 -->
       <div class="form-footer">
         <div class="footer-left">
-          <el-button 
-            v-if="currentStep > 1" 
-            @click="prevStep" 
-            size="large"
-            :icon="ArrowLeft"
-          >
+          <el-button v-if="currentStep > 1" @click="prevStep" size="large" :icon="ArrowLeft">
             上一步
           </el-button>
         </div>
         <div class="footer-right">
           <el-button @click="resetForm" size="large">重置</el-button>
-          <el-button 
-            v-if="currentStep < steps.length" 
-            type="primary" 
-            @click="nextStep" 
-            size="large"
-            :icon="ArrowRight"
-          >
+          <el-button v-if="currentStep < steps.length" type="primary" @click="nextStep" size="large" :icon="ArrowRight">
             下一步
           </el-button>
-          <el-button 
-            v-else
-            type="primary" 
-            @click="submitForm" 
-            :loading="isSubmitting"
-            size="large"
-            :icon="Check"
-          >
+          <el-button v-else type="primary" @click="submitForm" :loading="isSubmitting" size="large" :icon="Check">
             {{ isSubmitting ? '生成中...' : '生成个性化食谱' }}
           </el-button>
         </div>
@@ -354,29 +275,29 @@ const restrictionOptions = [
 ]
 
 const fitnessGoalOptions = [
-  { 
-    label: '保持体重', 
-    value: 'maintain', 
-    icon: '⚖️', 
-    description: '维持当前体重，均衡营养' 
+  {
+    label: '保持体重',
+    value: 'maintain',
+    icon: '⚖️',
+    description: '维持当前体重，均衡营养'
   },
-  { 
-    label: '减肥瘦身', 
-    value: 'lose-weight', 
-    icon: '📉', 
-    description: '低卡路里，高纤维食谱' 
+  {
+    label: '减肥瘦身',
+    value: 'lose-weight',
+    icon: '📉',
+    description: '低卡路里，高纤维食谱'
   },
-  { 
-    label: '增肌健身', 
-    value: 'gain-muscle', 
-    icon: '💪', 
-    description: '高蛋白，适量碳水化合物' 
+  {
+    label: '增肌健身',
+    value: 'gain-muscle',
+    icon: '💪',
+    description: '高蛋白，适量碳水化合物'
   },
-  { 
-    label: '增重', 
-    value: 'gain-weight', 
-    icon: '📈', 
-    description: '高热量，营养丰富' 
+  {
+    label: '增重',
+    value: 'gain-weight',
+    icon: '📈',
+    description: '高热量，营养丰富'
   }
 ]
 
@@ -493,11 +414,11 @@ const resetForm = () => {
 // 步骤导航
 const nextStep = async () => {
   if (!formRef.value) return
-  
+
   try {
     // 验证当前步骤
     await formRef.value.validate()
-    
+
     if (currentStep.value < steps.length) {
       currentStep.value++
     }
@@ -530,19 +451,19 @@ const toggleTaste = (taste) => {
 // 提交表单
 const submitForm = async () => {
   if (!formRef.value) return
-  
+
   try {
     // 验证表单
     await formRef.value.validate()
-    
+
     isSubmitting.value = true
-    
+
     // 构建提示词
     const prompt = buildPrompt(formData)
-    
+
     // 调用AI API生成食谱
     let fullResponse = ''
-    
+
     await chatApi.sendStreamMessage(prompt, {
       onMessage: (data) => {
         fullResponse += data
@@ -560,7 +481,7 @@ const submitForm = async () => {
         ElMessage.error('生成食谱失败，请稍后重试')
       }
     })
-    
+
   } catch (error) {
     if (error.message) {
       ElMessage.error('请完善表单信息')
@@ -577,20 +498,20 @@ const submitForm = async () => {
 const buildPrompt = (data) => {
   const tasteText = data.taste.length > 0 ? data.taste.join('、') : '无特殊要求'
   const restrictionsText = data.restrictions.includes('none') ? '无禁忌' : data.restrictions.join('、')
-  
+
   const goalMap = {
     'maintain': '保持体重',
     'lose-weight': '减肥瘦身',
     'gain-muscle': '增肌健身',
     'gain-weight': '增重'
   }
-  
+
   const difficultyMap = {
     'easy': '简单易做',
     'medium': '中等难度',
     'hard': '挑战复杂'
   }
-  
+
   const mealTimeMap = {
     'breakfast': '早餐',
     'lunch': '午餐',
@@ -598,7 +519,7 @@ const buildPrompt = (data) => {
     'supper': '夜宵',
     'afternoon-tea': '下午茶'
   }
-  
+
   let prompt = `请根据以下用户偏好，为我推荐一道个性化食谱：
 
 `
@@ -610,24 +531,24 @@ const buildPrompt = (data) => {
 `
   prompt += `- 烹饪时间：${data.cookingTime}分钟内
 \n`
-  
+
   prompt += `👅 口味偏好：${tasteText}
 \n`
-  
+
   prompt += `🚫 饮食禁忌：${restrictionsText}
 \n`
-  
+
   prompt += `💪 健身目标：${goalMap[data.fitnessGoal]}
 \n`
-  
+
   prompt += `👨‍🍳 烹饪难度：${difficultyMap[data.difficulty]}
 \n`
-  
+
   if (data.specialRequests.trim()) {
     prompt += `📝 特殊需求：${data.specialRequests}
 \n`
   }
-  
+
   prompt += `请提供详细的食谱，包括：
 `
   prompt += `1. 菜品名称和简介
@@ -640,9 +561,9 @@ const buildPrompt = (data) => {
 `
   prompt += `5. 烹饪小贴士
 \n`
-  
+
   prompt += `请确保推荐的食谱符合用户的所有要求，特别是饮食禁忌和健身目标。`
-  
+
   return prompt
 }
 </script>
@@ -972,43 +893,43 @@ const buildPrompt = (data) => {
     margin: 10px;
     max-height: calc(100vh - 20px);
   }
-  
+
   .form-header {
     padding: 16px 20px;
   }
-  
+
   .header-info {
     gap: 12px;
   }
-  
+
   .avatar {
     width: 40px;
     height: 40px;
     font-size: 18px;
   }
-  
+
   .title-info h3 {
     font-size: 18px;
   }
-  
+
   .form-content {
     padding: 20px;
   }
-  
+
   .el-checkbox-group {
     grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
   }
-  
+
   .el-radio-group {
     flex-direction: column;
     gap: 12px;
   }
-  
+
   .form-footer {
     padding: 16px 20px;
     flex-direction: column;
   }
-  
+
   .form-footer .el-button {
     width: 100%;
   }
