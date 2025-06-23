@@ -152,75 +152,6 @@
               </div>
             </div>
           </el-tab-pane>
-          
-          <!-- 基本信息 -->
-          <el-tab-pane label="基本信息" name="profile">
-            <div class="settings-section">
-              <!-- 需要登录提示 -->
-              <div v-if="!userStore.isLoggedIn" class="login-required">
-                <el-empty description="请先登录以访问个人资料">
-                  <el-button type="primary" @click="activeTab = 'auth'">去登录</el-button>
-                </el-empty>
-              </div>
-              
-              <!-- 已登录内容 -->
-              <div v-else>
-                <div class="section-header">
-                  <h3>个人资料</h3>
-                  <p>更新您的基本信息</p>
-                </div>
-              
-              <el-form 
-                ref="profileFormRef"
-                :model="profileForm"
-                :rules="profileRules"
-                label-width="120px"
-                class="profile-form"
-              >
-                <el-form-item label="头像">
-                  <div class="avatar-upload">
-                    <el-avatar :size="80" :src="profileForm.avatar" :icon="UserFilled" />
-                    <el-button size="small" @click="uploadAvatar">更换头像</el-button>
-                  </div>
-                </el-form-item>
-                
-                <el-form-item label="昵称" prop="nickname">
-                  <el-input v-model="profileForm.nickname" placeholder="请输入昵称" />
-                </el-form-item>
-                
-                <el-form-item label="邮箱" prop="email">
-                  <el-input v-model="profileForm.email" placeholder="请输入邮箱" />
-                </el-form-item>
-                
-                <el-form-item label="手机号" prop="phone">
-                  <el-input v-model="profileForm.phone" placeholder="请输入手机号" />
-                </el-form-item>
-                
-                <el-form-item label="生日">
-                  <el-date-picker
-                    v-model="profileForm.birthday"
-                    type="date"
-                    placeholder="选择生日"
-                    style="width: 100%"
-                  />
-                </el-form-item>
-                
-                <el-form-item label="性别">
-                  <el-radio-group v-model="profileForm.gender">
-                    <el-radio label="male">男</el-radio>
-                    <el-radio label="female">女</el-radio>
-                    <el-radio label="other">其他</el-radio>
-                  </el-radio-group>
-                </el-form-item>
-                
-                <el-form-item>
-                  <el-button type="primary" @click="saveProfile">保存更改</el-button>
-                  <el-button @click="resetProfile">重置</el-button>
-                </el-form-item>
-              </el-form>
-              </div>
-            </div>
-          </el-tab-pane>
 
           <!-- 饮食偏好 -->
           <el-tab-pane label="饮食偏好" name="preferences">
@@ -471,8 +402,8 @@
 <script setup>
 import { ref, reactive, nextTick, onMounted, watch } from 'vue'
 import { UserFilled } from '@element-plus/icons-vue'
+import { userApi } from '@/api/user'
 import { useUserStore } from '../store'
-import { userApi } from '../api/chat'
 import { ElMessage, ElMessageBox } from 'element-plus'
 
 const userStore = useUserStore()
@@ -628,61 +559,32 @@ const handleLogin = async () => {
     await loginFormRef.value.validate()
     loginLoading.value = true
     
-    const response = await fetch('http://localhost:8080/api/auth/login', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({
-        username: loginForm.username,
-        password: loginForm.password
-      })
+    // 调用后端API进行登录
+    const credentials = {
+      username: loginForm.username,
+      password: loginForm.password
+    }
+    
+    const response = await userApi.login(credentials)
+    
+    // 从响应中获取用户数据和token
+    const { user, token } = response
+    
+    // 使用store的login方法
+    userStore.login(user, token)
+    
+    ElMessage.success('登录成功！')
+    // 切换到个人资料页面
+    activeTab.value = 'preferences'
+    
+    // 清空登录表单
+    Object.assign(loginForm, {
+      username: '',
+      password: ''
     })
-    
-    console.log('登录响应状态:', response.status)
-    console.log('登录响应头:', response.headers)
-    
-    let data
-    try {
-      data = await response.json()
-      console.log('登录响应数据:', data)
-    } catch (jsonError) {
-      console.error('JSON解析失败:', jsonError)
-      const textData = await response.text()
-      console.log('登录响应文本:', textData)
-      throw new Error('服务器响应格式错误')
-    }
-    
-    // 检查多种成功状态
-    if (response.ok || response.status === 200 || data.success === true || data.code === 200) {
-      // 登录成功，提取用户信息和token
-      const userData = data.user || data.data || data
-      const token = data.token || data.accessToken || data.data?.token || 'temp_token_' + Date.now()
-      
-      console.log('用户数据:', userData)
-      console.log('Token:', token)
-      
-      // 使用store的login方法
-      userStore.login(userData, token)
-      
-      ElMessage.success('登录成功！')
-      // 切换到个人资料页面
-      activeTab.value = 'profile'
-      
-      // 清空登录表单
-      Object.assign(loginForm, {
-        username: '',
-        password: ''
-      })
-    } else {
-      // 登录失败
-      const errorMessage = data.message || data.msg || data.error || '登录失败，请检查用户名和密码'
-      console.error('登录失败:', errorMessage)
-      ElMessage.error(errorMessage)
-    }
   } catch (error) {
-    console.error('登录请求失败:', error)
-    ElMessage.error('登录失败，请检查网络连接')
+    console.error('登录失败:', error)
+    ElMessage.error(error.message || '登录失败，请重试')
   } finally {
     loginLoading.value = false
   }
@@ -770,8 +672,39 @@ const handleRegister = async () => {
 }
 
 // 上传头像
-const uploadAvatar = () => {
-  ElMessage.info('头像上传功能开发中...')
+const uploadAvatar = async (file) => {
+  try {
+    // 检查文件类型
+    const allowedTypes = ['image/jpeg', 'image/png', 'image/jpg']
+    if (!allowedTypes.includes(file.type)) {
+      ElMessage.error('只支持 JPG、PNG 格式的图片')
+      return
+    }
+    
+    // 检查文件大小 (2MB)
+    const maxSize = 2 * 1024 * 1024
+    if (file.size > maxSize) {
+      ElMessage.error('图片大小不能超过2MB')
+      return
+    }
+    
+    // 调用后端API上传头像
+    const response = await userApi.uploadAvatar(file)
+    
+    // 更新头像URL
+    profileForm.avatar = response.avatarUrl
+    
+    // 更新store中的用户信息
+    userStore.updateUserInfo({
+      ...userStore.userInfo,
+      avatar: response.avatarUrl
+    })
+    
+    ElMessage.success('头像上传成功')
+  } catch (error) {
+    console.error('头像上传失败:', error)
+    ElMessage.error(error.message || '头像上传失败，请重试')
+  }
 }
 
 // 保存个人资料
@@ -779,7 +712,19 @@ const saveProfile = async () => {
   try {
     await profileFormRef.value.validate()
     
-    // 更新用户信息到store
+    // 调用后端API保存用户信息
+    const profileData = {
+      nickname: profileForm.nickname,
+      email: profileForm.email,
+      phone: profileForm.phone,
+      birthday: profileForm.birthday,
+      gender: profileForm.gender,
+      avatar: profileForm.avatar
+    }
+    
+    const response = await userApi.updateProfile(profileData)
+    
+    // 更新本地store
     userStore.updateUserInfo({
       name: profileForm.nickname,
       email: profileForm.email,
@@ -789,13 +734,10 @@ const saveProfile = async () => {
       avatar: profileForm.avatar
     })
     
-    // TODO: 这里应该调用真实的API保存到后端
-    // await userApi.updateProfile(profileForm)
-    
     ElMessage.success('个人资料保存成功')
   } catch (error) {
     console.error('保存个人资料失败:', error)
-    ElMessage.error('保存失败，请重试')
+    ElMessage.error(error.message || '保存失败，请重试')
   }
 }
 
@@ -824,17 +766,16 @@ const removeDislikedIngredient = (ingredient) => {
 // 保存饮食偏好
 const savePreferences = async () => {
   try {
-    // 这里应该调用真实的API
-    // await userApi.updatePreferences(preferences)
+    // 调用后端API保存饮食偏好
+    const response = await userApi.updatePreferences(preferences)
     
-    // 模拟API调用
-    setTimeout(() => {
-      userStore.updatePreferences(preferences)
-      ElMessage.success('饮食偏好保存成功')
-    }, 500)
+    // 更新本地store
+    userStore.updatePreferences(preferences)
+    
+    ElMessage.success('饮食偏好保存成功')
   } catch (error) {
     console.error('保存饮食偏好失败:', error)
-    ElMessage.error('保存失败，请重试')
+    ElMessage.error(error.message || '保存失败，请重试')
   }
 }
 

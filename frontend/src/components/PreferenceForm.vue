@@ -44,43 +44,9 @@
       <div class="form-content">
         <transition name="slide" mode="out-in">
           <div :key="currentStep" class="step-content">
-            <!-- 第一步：基本信息 -->
-            <div v-if="currentStep === 1" class="step-form">
-              <div class="step-description">
-                <h4>基本用餐信息</h4>
-                <p>请告诉我们您的基本用餐需求</p>
-              </div>
-              <el-form ref="formRef" :model="formData" :rules="currentStepRules" label-width="100px"
-                class="preference-form-inner">
-                <el-form-item label="用餐时间" prop="mealTime">
-                  <el-select v-model="formData.mealTime" placeholder="请选择用餐时间" style="width: 100%" size="large">
-                    <el-option label="早餐" value="breakfast" />
-                    <el-option label="午餐" value="lunch" />
-                    <el-option label="晚餐" value="dinner" />
-                    <el-option label="夜宵" value="supper" />
-                    <el-option label="下午茶" value="afternoon-tea" />
-                  </el-select>
-                </el-form-item>
-
-                <el-form-item label="用餐人数" prop="servings">
-                  <el-input-number v-model="formData.servings" :min="1" :max="10" controls-position="right"
-                    style="width: 200px" size="large" />
-                  <span style="margin-left: 10px; color: #666;">人</span>
-                </el-form-item>
-
-                <el-form-item label="烹饪时间" prop="cookingTime">
-                  <el-radio-group v-model="formData.cookingTime" size="large">
-                    <el-radio-button label="15">15分钟内</el-radio-button>
-                    <el-radio-button label="30">30分钟内</el-radio-button>
-                    <el-radio-button label="60">1小时内</el-radio-button>
-                    <el-radio-button label="120">2小时内</el-radio-button>
-                  </el-radio-group>
-                </el-form-item>
-              </el-form>
-            </div>
 
             <!-- 第二步：口味偏好 -->
-            <div v-if="currentStep === 2" class="step-form">
+            <div v-if="currentStep === 1" class="step-form">
               <div class="step-description">
                 <h4>口味偏好设置</h4>
                 <p>选择您喜欢的口味和饮食限制</p>
@@ -114,7 +80,7 @@
             </div>
 
             <!-- 第三步：烹饪要求 -->
-            <div v-if="currentStep === 3" class="step-form">
+            <div v-if="currentStep === 2" class="step-form">
               <div class="step-description">
                 <h4>烹饪要求</h4>
                 <p>设置您的健身目标和烹饪难度偏好</p>
@@ -144,7 +110,7 @@
             </div>
 
             <!-- 第四步：特殊需求 -->
-            <div v-if="currentStep === 4" class="step-form">
+            <div v-if="currentStep === 3" class="step-form">
               <div class="step-description">
                 <h4>特殊需求</h4>
                 <p>添加任何其他特殊要求或偏好（可选）</p>
@@ -224,7 +190,6 @@ const currentStep = ref(1)
 
 // 步骤配置
 const steps = [
-  { title: '基本信息', key: 'basic' },
   { title: '口味偏好', key: 'taste' },
   { title: '烹饪要求', key: 'cooking' },
   { title: '特殊需求', key: 'special' }
