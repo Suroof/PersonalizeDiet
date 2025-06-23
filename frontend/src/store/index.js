@@ -100,9 +100,17 @@ export const useChatStore = defineStore('chat', () => {
 
 // 用户状态管理
 export const useUserStore = defineStore('user', () => {
+  const isLoggedIn = ref(false)
+  const token = ref('')
   const userInfo = ref({
+    id: '',
+    username: '',
+    email: '',
     name: '',
     avatar: '',
+    phone: '',
+    birthday: '',
+    gender: '',
     preferences: {
       cuisine: [], // 菜系偏好
       dietary: [], // 饮食限制
@@ -112,27 +120,80 @@ export const useUserStore = defineStore('user', () => {
     }
   })
 
+  // 登录
+  const login = (userData, authToken) => {
+    isLoggedIn.value = true
+    token.value = authToken
+    userInfo.value = { ...userInfo.value, ...userData }
+    
+    // 保存到本地存储
+    localStorage.setItem('token', authToken)
+    localStorage.setItem('userInfo', JSON.stringify(userInfo.value))
+    localStorage.setItem('isLoggedIn', 'true')
+  }
+
+  // 登出
+  const logout = () => {
+    isLoggedIn.value = false
+    token.value = ''
+    userInfo.value = {
+      id: '',
+      username: '',
+      email: '',
+      name: '',
+      avatar: '',
+      phone: '',
+      birthday: '',
+      gender: '',
+      preferences: {
+        cuisine: [],
+        dietary: [],
+        allergies: [],
+        cookingTime: 30,
+        difficulty: 'medium'
+      }
+    }
+    
+    // 清除本地存储
+    localStorage.removeItem('token')
+    localStorage.removeItem('userInfo')
+    localStorage.removeItem('isLoggedIn')
+  }
+
   const updateUserInfo = (info) => {
     userInfo.value = { ...userInfo.value, ...info }
     // 保存到本地存储
-    localStorage.setItem('userInfo', JSON.stringify(userInfo.value))
+    if (isLoggedIn.value) {
+      localStorage.setItem('userInfo', JSON.stringify(userInfo.value))
+    }
   }
 
   const updatePreferences = (preferences) => {
     userInfo.value.preferences = { ...userInfo.value.preferences, ...preferences }
-    localStorage.setItem('userInfo', JSON.stringify(userInfo.value))
+    if (isLoggedIn.value) {
+      localStorage.setItem('userInfo', JSON.stringify(userInfo.value))
+    }
   }
 
   // 从本地存储加载用户信息
   const loadUserInfo = () => {
-    const saved = localStorage.getItem('userInfo')
-    if (saved) {
-      userInfo.value = JSON.parse(saved)
+    const savedToken = localStorage.getItem('token')
+    const savedUserInfo = localStorage.getItem('userInfo')
+    const savedLoginStatus = localStorage.getItem('isLoggedIn')
+    
+    if (savedToken && savedUserInfo && savedLoginStatus === 'true') {
+      token.value = savedToken
+      userInfo.value = JSON.parse(savedUserInfo)
+      isLoggedIn.value = true
     }
   }
 
   return {
+    isLoggedIn,
+    token,
     userInfo,
+    login,
+    logout,
     updateUserInfo,
     updatePreferences,
     loadUserInfo

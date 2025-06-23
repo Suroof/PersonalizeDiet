@@ -10,21 +10,45 @@
       <!-- 设置内容 -->
       <div class="settings-content">
         <el-tabs v-model="activeTab" class="settings-tabs">
-          <!-- 登录注册 -->
-          <el-tab-pane label="登录注册" name="auth">
+          <!-- 登录注册 / 账户管理 -->
+          <el-tab-pane :label="userStore.isLoggedIn ? '账户管理' : '登录注册'" name="auth">
             <div class="settings-section">
-              <div class="section-header">
-                <h3>账户管理</h3>
-                <p>登录或注册您的账户</p>
+              <!-- 已登录状态 -->
+              <div v-if="userStore.isLoggedIn" class="logged-in-section">
+                <div class="section-header">
+                  <h3>账户管理</h3>
+                  <p>管理您的账户信息</p>
+                </div>
+                
+                <el-card class="user-info-card">
+                  <div class="user-info">
+                    <el-avatar :size="60" :src="userStore.userInfo.avatar" :icon="UserFilled" />
+                    <div class="user-details">
+                      <h4>{{ userStore.userInfo.username || userStore.userInfo.name || '用户' }}</h4>
+                      <p>{{ userStore.userInfo.email }}</p>
+                    </div>
+                  </div>
+                  
+                  <div class="user-actions">
+                    <el-button type="danger" @click="handleLogout">退出登录</el-button>
+                  </div>
+                </el-card>
               </div>
               
-              <div class="auth-container">
-                <el-card class="auth-card">
-                  <template #header>
-                    <div class="auth-header">
-                      <el-segmented v-model="authMode" :options="authOptions" size="large" />
-                    </div>
-                  </template>
+              <!-- 未登录状态 -->
+              <div v-else class="login-section">
+                <div class="section-header">
+                  <h3>账户管理</h3>
+                  <p>登录或注册您的账户</p>
+                </div>
+                
+                <div class="auth-container">
+                  <el-card class="auth-card">
+                    <template #header>
+                      <div class="auth-header">
+                        <el-segmented v-model="authMode" :options="authOptions" size="large" />
+                      </div>
+                    </template>
                   
                   <!-- 登录表单 -->
                   <div v-if="authMode === 'login'" class="auth-form">
@@ -124,6 +148,7 @@
                     </el-form>
                   </div>
                 </el-card>
+                </div>
               </div>
             </div>
           </el-tab-pane>
@@ -131,10 +156,19 @@
           <!-- 基本信息 -->
           <el-tab-pane label="基本信息" name="profile">
             <div class="settings-section">
-              <div class="section-header">
-                <h3>个人资料</h3>
-                <p>更新您的基本信息</p>
+              <!-- 需要登录提示 -->
+              <div v-if="!userStore.isLoggedIn" class="login-required">
+                <el-empty description="请先登录以访问个人资料">
+                  <el-button type="primary" @click="activeTab = 'auth'">去登录</el-button>
+                </el-empty>
               </div>
+              
+              <!-- 已登录内容 -->
+              <div v-else>
+                <div class="section-header">
+                  <h3>个人资料</h3>
+                  <p>更新您的基本信息</p>
+                </div>
               
               <el-form 
                 ref="profileFormRef"
@@ -184,16 +218,26 @@
                   <el-button @click="resetProfile">重置</el-button>
                 </el-form-item>
               </el-form>
+              </div>
             </div>
           </el-tab-pane>
 
           <!-- 饮食偏好 -->
           <el-tab-pane label="饮食偏好" name="preferences">
             <div class="settings-section">
-              <div class="section-header">
-                <h3>饮食偏好</h3>
-                <p>设置您的饮食习惯和偏好，获得更精准的推荐</p>
+              <!-- 需要登录提示 -->
+              <div v-if="!userStore.isLoggedIn" class="login-required">
+                <el-empty description="请先登录以设置饮食偏好">
+                  <el-button type="primary" @click="activeTab = 'auth'">去登录</el-button>
+                </el-empty>
               </div>
+              
+              <!-- 已登录内容 -->
+              <div v-else>
+                <div class="section-header">
+                  <h3>饮食偏好</h3>
+                  <p>设置您的饮食习惯和偏好，获得更精准的推荐</p>
+                </div>
               
               <div class="preference-groups">
                 <!-- 饮食类型 -->
@@ -308,6 +352,7 @@
               <div class="preference-actions">
                 <el-button type="primary" @click="savePreferences">保存偏好</el-button>
                 <el-button @click="resetPreferences">重置为默认</el-button>
+              </div>
               </div>
             </div>
           </el-tab-pane>
@@ -424,7 +469,7 @@
 </template>
 
 <script setup>
-import { ref, reactive, nextTick, onMounted } from 'vue'
+import { ref, reactive, nextTick, onMounted, watch } from 'vue'
 import { UserFilled } from '@element-plus/icons-vue'
 import { useUserStore } from '../store'
 import { userApi } from '../api/chat'
@@ -594,29 +639,72 @@ const handleLogin = async () => {
       })
     })
     
-    const data = await response.json()
+    console.log('登录响应状态:', response.status)
+    console.log('登录响应头:', response.headers)
     
-    if (response.ok) {
-      // 登录成功
+    let data
+    try {
+      data = await response.json()
+      console.log('登录响应数据:', data)
+    } catch (jsonError) {
+      console.error('JSON解析失败:', jsonError)
+      const textData = await response.text()
+      console.log('登录响应文本:', textData)
+      throw new Error('服务器响应格式错误')
+    }
+    
+    // 检查多种成功状态
+    if (response.ok || response.status === 200 || data.success === true || data.code === 200) {
+      // 登录成功，提取用户信息和token
+      const userData = data.user || data.data || data
+      const token = data.token || data.accessToken || data.data?.token || 'temp_token_' + Date.now()
+      
+      console.log('用户数据:', userData)
+      console.log('Token:', token)
+      
+      // 使用store的login方法
+      userStore.login(userData, token)
+      
       ElMessage.success('登录成功！')
-      // 处理用户信息
-      if (data.user || data.data) {
-        userStore.updateUserInfo(data.user || data.data)
-      }
-      if (data.token) {
-        localStorage.setItem('token', data.token)
-      }
-      // 切换到基本信息页面
+      // 切换到个人资料页面
       activeTab.value = 'profile'
+      
+      // 清空登录表单
+      Object.assign(loginForm, {
+        username: '',
+        password: ''
+      })
     } else {
-      ElMessage.error(data.message || '登录失败，请检查用户名和密码')
+      // 登录失败
+      const errorMessage = data.message || data.msg || data.error || '登录失败，请检查用户名和密码'
+      console.error('登录失败:', errorMessage)
+      ElMessage.error(errorMessage)
     }
   } catch (error) {
-    console.error('登录失败:', error)
+    console.error('登录请求失败:', error)
     ElMessage.error('登录失败，请检查网络连接')
   } finally {
     loginLoading.value = false
   }
+}
+
+// 登出处理
+const handleLogout = () => {
+  ElMessageBox.confirm(
+    '确定要退出登录吗？',
+    '确认退出',
+    {
+      confirmButtonText: '确定',
+      cancelButtonText: '取消',
+      type: 'warning',
+    }
+  ).then(() => {
+    userStore.logout()
+    ElMessage.success('已退出登录')
+    activeTab.value = 'auth'
+  }).catch(() => {
+    // 用户取消
+  })
 }
 
 // 注册处理
@@ -691,16 +779,23 @@ const saveProfile = async () => {
   try {
     await profileFormRef.value.validate()
     
-    // 这里应该调用真实的API
+    // 更新用户信息到store
+    userStore.updateUserInfo({
+      name: profileForm.nickname,
+      email: profileForm.email,
+      phone: profileForm.phone,
+      birthday: profileForm.birthday,
+      gender: profileForm.gender,
+      avatar: profileForm.avatar
+    })
+    
+    // TODO: 这里应该调用真实的API保存到后端
     // await userApi.updateProfile(profileForm)
     
-    // 模拟API调用
-    setTimeout(() => {
-      userStore.updateProfile(profileForm)
-      ElMessage.success('个人资料保存成功')
-    }, 500)
+    ElMessage.success('个人资料保存成功')
   } catch (error) {
     console.error('保存个人资料失败:', error)
+    ElMessage.error('保存失败，请重试')
   }
 }
 
@@ -857,6 +952,43 @@ const watchIngredientInput = () => {
 
 onMounted(() => {
   loadUserData()
+  
+  // 如果已登录，同步用户信息到表单
+  if (userStore.isLoggedIn) {
+    Object.assign(profileForm, {
+      nickname: userStore.userInfo.name || userStore.userInfo.username || '',
+      email: userStore.userInfo.email || '',
+      phone: userStore.userInfo.phone || '',
+      birthday: userStore.userInfo.birthday || '',
+      gender: userStore.userInfo.gender || '',
+      avatar: userStore.userInfo.avatar || ''
+    })
+  }
+})
+
+// 监听登录状态变化
+watch(() => userStore.isLoggedIn, (newVal) => {
+  if (newVal) {
+    // 登录后同步用户信息到表单
+    Object.assign(profileForm, {
+      nickname: userStore.userInfo.name || userStore.userInfo.username || '',
+      email: userStore.userInfo.email || '',
+      phone: userStore.userInfo.phone || '',
+      birthday: userStore.userInfo.birthday || '',
+      gender: userStore.userInfo.gender || '',
+      avatar: userStore.userInfo.avatar || ''
+    })
+  } else {
+    // 登出后清空表单
+    Object.assign(profileForm, {
+      nickname: '',
+      email: '',
+      phone: '',
+      birthday: '',
+      gender: '',
+      avatar: ''
+    })
+  }
 })
 </script>
 
@@ -865,6 +997,62 @@ onMounted(() => {
   min-height: 100vh;
   background: var(--background-color);
   padding: 20px;
+}
+
+/* 登录状态相关样式 */
+.user-info-card {
+  margin-bottom: 20px;
+}
+
+.user-info {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-bottom: 20px;
+}
+
+.user-details h4 {
+  margin: 0 0 4px 0;
+  font-size: 18px;
+  font-weight: 600;
+  color: #303133;
+}
+
+.user-details p {
+  margin: 0;
+  color: #909399;
+  font-size: 14px;
+}
+
+.user-actions {
+  display: flex;
+  justify-content: flex-end;
+}
+
+.login-required {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 300px;
+}
+
+/* 认证相关样式 */
+.auth-container {
+  max-width: 400px;
+  margin: 0 auto;
+}
+
+.auth-card {
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.auth-header {
+  display: flex;
+  justify-content: center;
+}
+
+.auth-form {
+  padding: 20px 0;
 }
 
 .settings-container {
