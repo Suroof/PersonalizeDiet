@@ -2,6 +2,7 @@ import { createRouter, createWebHistory } from 'vue-router'
 import Home from '../views/Home.vue'
 import RecipeDetail from '../views/RecipeDetail.vue'
 import UserSettings from '../views/UserSettings.vue'
+import Chat from '../views/Chat.vue'
 
 const routes = [
   {
@@ -26,6 +27,14 @@ const routes = [
     component: UserSettings,
     meta: {
       title: '用户设置'
+    }
+  },
+  {
+    path: '/chat',
+    name: 'Chat',
+    component: Chat,
+    meta: {
+      title: '智能营养助手'
     }
   },
   {

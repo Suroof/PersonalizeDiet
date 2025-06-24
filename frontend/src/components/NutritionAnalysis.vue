@@ -108,8 +108,8 @@
           <el-button size="small" @click="saveToHistory">
             💾 保存到历史
           </el-button>
-          <el-button size="small" @click="shareResult">
-            📤 分享结果
+          <el-button size="small" @click="continueChat">
+            📤 继续对话
           </el-button>
         </div>
       </div>
@@ -179,9 +179,12 @@
 <script setup>
 import { ref, onMounted } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
+import { useRouter } from 'vue-router'
 import { nutritionApi } from '@/api/nutrition'
+import { aiChatApi } from '@/api/only-chat'
 
 // 响应式数据
+const router = useRouter()
 const activeTab = ref('file')
 const selectedFile = ref(null)
 const inputText = ref('')
@@ -322,24 +325,45 @@ const saveToHistory = async () => {
   }
 }
 
-// 分享结果
-const shareResult = () => {
+// 继续对话
+const continueChat = async () => {
   if (!analysisResult.value) return
   
-  const shareText = `营养分析结果：\n${analysisResult.value.analysis}`
-  
-  if (navigator.share) {
-    navigator.share({
-      title: '营养分析结果',
-      text: shareText
+  try {
+    // 弹出确认对话框
+    await ElMessageBox.confirm(
+      '是否要基于当前营养分析结果继续智能对话？系统将为您提供个性化的营养建议和问答服务。',
+      '继续对话',
+      {
+        confirmButtonText: '开始对话',
+        cancelButtonText: '取消',
+        type: 'info',
+        customClass: 'continue-chat-dialog'
+      }
+    )
+    
+    // 用户确认后，准备对话数据
+    const chatContext = {
+      analysisResult: analysisResult.value.analysis,
+      fileName: analysisResult.value.fileName || '营养分析',
+      timestamp: new Date().toISOString()
+    }
+    
+    // 跳转到对话页面，并传递分析结果作为初始上下文
+    router.push({
+      name: 'Chat',
+      query: {
+        context: 'nutrition-analysis',
+        data: JSON.stringify(chatContext)
+      }
     })
-  } else {
-    // 复制到剪贴板
-    navigator.clipboard.writeText(shareText).then(() => {
-      ElMessage.success('结果已复制到剪贴板')
-    }).catch(() => {
-      ElMessage.error('复制失败')
-    })
+    
+  } catch (error) {
+    // 用户取消或其他错误
+    if (error !== 'cancel') {
+      console.error('继续对话失败:', error)
+      ElMessage.error('启动对话失败，请稍后重试')
+    }
   }
 }
 
