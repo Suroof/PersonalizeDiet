@@ -3,12 +3,12 @@
     <!-- 分析方式选择 -->
     <div class="analysis-tabs">
       <el-tabs v-model="activeTab" @tab-change="handleTabChange">
-        <el-tab-pane label="📁 文件上传" name="file">
+        <el-tab-pane label="🌇 图片上传" name="file">
           <div class="upload-section">
             <el-upload
               ref="uploadRef"
               class="upload-dragger"
-              drag
+              drag 
               :auto-upload="false"
               :on-change="handleFileChange"
               :before-upload="beforeUpload"
@@ -18,8 +18,7 @@
               <div class="upload-content">
                 <div class="upload-icon">📤</div>
                 <div class="upload-text">
-                  <p>将文件拖拽到此处，或<em>点击上传</em></p>
-                  <p class="upload-tip">支持图片、文本文件和PDF，大小不超过10MB</p>
+                  <p>将图片拖拽到此处，或<em>点击上传</em></p>
                 </div>
               </div>
             </el-upload>
