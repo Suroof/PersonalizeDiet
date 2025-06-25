@@ -65,7 +65,7 @@
               v-model="inputText"
               type="textarea"
               :rows="6"
-              placeholder="请输入要分析的食物信息，例如：\n- 一碗白米饭\n- 100克鸡胸肉\n- 一个苹果\n- 今天吃了什么..."
+              placeholder="请输入要分析的食物信息，例如： 一碗白米饭- 100克鸡胸肉 一个苹果 今天吃了什么..."
               maxlength="2000"
               show-word-limit
               class="text-input"
