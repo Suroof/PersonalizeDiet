@@ -53,10 +53,10 @@ export const chatApi = {
       const url = `${DIFY_API_URL}/chat-messages`
       
       // 使用 axios 发送 POST 请求
-      const response = await axios.post(url, {
+      const response = await axios.post('http://localhost:8080/api/chat/send', {
         inputs: {},
         query: message,
-        response_mode: 'blocking', // 改为阻塞模式，避免流式处理的复杂性
+        response_mode: 'blocking', 
         conversation_id: '',
         user: 'user-' + Date.now()
       }, {
