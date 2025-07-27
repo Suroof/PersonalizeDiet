@@ -30,15 +30,17 @@ public class SecurityConfig {
                 .cors(cors -> cors.configurationSource(corsConfigurationSource())) // 启用 CORS 并使用自定义配置
                 .authorizeHttpRequests(authorize -> authorize
                         .requestMatchers("/api/users").permitAll()
+                        .requestMatchers("/api/users/profile").permitAll()
                         .requestMatchers("/api/auth/login").permitAll()
                         .requestMatchers("/api/chat/**").permitAll()
                         .requestMatchers("/api/nutrition/**").permitAll()
                         .requestMatchers("/api/recipes/**").permitAll()
+                        .requestMatchers("/api/interest/**").permitAll()
                         .requestMatchers("/api/user-preferences/**").permitAll()
                         .anyRequest().authenticated()
                 )
-                .sessionManagement(session -> session
-                        .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
+                   .sessionManagement(session -> session
+            .sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED) // 允许创建Session
                 );
 
         return http.build();

@@ -559,29 +559,34 @@ const handleLogin = async () => {
     await loginFormRef.value.validate()
     loginLoading.value = true
     
-    // 调用后端API进行登录
     const credentials = {
       username: loginForm.username,
       password: loginForm.password
     }
     
     const response = await userApi.login(credentials)
+    console.log('登录响应完整数据:', response)
     
-    // 从响应中获取用户数据和token
-    const { user, token } = response
-    
-    // 使用store的login方法
-    userStore.login(user, token)
-    
-    ElMessage.success('登录成功！')
-    // 切换到个人资料页面
-    activeTab.value = 'preferences'
-    
-    // 清空登录表单
-    Object.assign(loginForm, {
-      username: '',
-      password: ''
-    })
+    // 检查响应结构
+    if (response.success && response.data) {
+      const { user, token } = response.data
+      console.log('用户数据:', user)
+      console.log('Token:', token)
+      
+      // 使用store的login方法
+      userStore.login(user, token || 'session-based')
+      
+      ElMessage.success('登录成功！')
+      activeTab.value = 'preferences'
+      
+      // 清空登录表单
+      Object.assign(loginForm, {
+        username: '',
+        password: ''
+      })
+    } else {
+      ElMessage.error(response.message || '登录失败')
+    }
   } catch (error) {
     console.error('登录失败:', error)
     ElMessage.error(error.message || '登录失败，请重试')

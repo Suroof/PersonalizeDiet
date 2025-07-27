@@ -8,6 +8,7 @@ const API_BASE_URL = 'http://localhost:8080/api'
 const userApiClient = axios.create({
   baseURL: API_BASE_URL,
   timeout: 10000,
+  withCredentials: true, // 支持Cookie/Session
   headers: {
     'Content-Type': 'application/json'
   }
