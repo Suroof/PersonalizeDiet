@@ -41,9 +41,7 @@ public class AuthController {
             // 构造返回数据
             Map<String, Object> responseData = new HashMap<>();
             responseData.put("user", new UserDetailsDto(user));
-            responseData.put("token", "session-based"); // 或者生成真实token
-            
-            System.out.println("登录成功，用户信息: " + user.getUsername() + ", ID: " + user.getId());
+            responseData.put("token", "session-based"); 
             
             return new ApiResponse<>(true, "登录成功", responseData);
         } catch (Exception e) {
